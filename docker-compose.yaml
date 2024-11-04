@@ -1,0 +1,37 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: dream_vacation_app_bckd
+    ports:
+      - "3001:3001"
+    depends_on:
+      - db
+    env_file:
+      - ./backend/.env
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: dream_vacation_app_ftd
+    ports:
+      - "3000:80"
+    env_file:
+      - ./frontend/.env
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:17
+    container_name: postgres_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - ./backend/.env
+
+volumes:
+  postgres_data:
