@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: dream-vacation-db
+spec:
+  replicas: 1  
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      containers:
+      - name: postgres-db
+        image: theglad/postgres:17
+        ports:
+        - containerPort: 5432
+        resources:
+          requests:
+            cpu: "500m"     
+            memory: "1Gi"  
+          limits:
+            cpu: "1"        
+            memory: "2Gi"   
+        env:
+        - name: POSTGRES_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: db-config
+              key: DB_PORT
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: db-config
+              key: DB_NAME
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: dream-vacation-secrets
+              key: DB_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: dream-vacation-secrets
+              key: DB_PASSWORD
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: postgresdb-pv-volume
+          subPath: postgres  
+      volumes:
+      - name: postgresdb-pv-volume
+        persistentVolumeClaim:
+          claimName: postgresdb-pv-claim
