@@ -115,4 +115,4 @@ jobs:
       - name: Display Access URLs
         run: |
           NODE_PORT=$(kubectl get svc dream-vacation-backend-svc -n "$NAMESPACE" -o=jsonpath='{.spec.ports[0].nodePort}')
-          echo Backend URL: http://$MINIKUBE_IP:$NODE_PORT"
+          echo "Frontend URL: http://$MINIKUBE_IP:$NODE_PORT"
