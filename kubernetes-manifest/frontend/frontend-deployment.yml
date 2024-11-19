@@ -28,4 +28,4 @@ spec:
             memory: "128Mi"
         env:
         - name: REACT_APP_API_URL
-          value: "http://dream-vacation-backend-svc.$(NAMESPACE).svc.cluster.local"
+          value: "http://dream-vacation-backend-svc"

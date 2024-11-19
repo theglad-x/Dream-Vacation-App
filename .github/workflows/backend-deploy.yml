@@ -88,8 +88,8 @@ jobs:
         run: |
           kubectl apply -f kubernetes-manifest/database/db-pv.yml -n $NAMESPACE
           kubectl apply -f kubernetes-manifest/database/db-pvc.yml -n $NAMESPACE
-          kubectl apply -f kubernetes-manifest/database/db-secrets.yml -n $NAMESPACE
           kubectl apply -f kubernetes-manifest/database/db-cm.yml -n $NAMESPACE
+          kubectl apply -f kubernetes-manifest/database/db-secrets.yml -n $NAMESPACE
           kubectl apply -f kubernetes-manifest/database/db-deployment.yml -n $NAMESPACE
           kubectl apply -f kubernetes-manifest/database/db-service.yml -n $NAMESPACE
   

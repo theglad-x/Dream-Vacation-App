@@ -24,7 +24,7 @@ services:
       - backend
 
   db:
-    image: postgres:17
+    image: postgres:latest
     container_name: postgres_db
     ports:
       - "5432:5432"

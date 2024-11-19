@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: postgres-db
-        image: theglad/postgres:17
+        image: postgres:latest
         ports:
         - containerPort: 5432
         resources:
