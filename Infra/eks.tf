@@ -38,7 +38,7 @@ resource "aws_eks_cluster" "k8s-cluster" {
     subnet_ids = [aws_subnet.private-us-east-1a.id, aws_subnet.private-us-east-1b.id]
   }
 
-#Change Auth Mode from Config to EKS API
+  #Change Auth Mode from Config to EKS API
   access_config {
     authentication_mode                         = "API_AND_CONFIG_MAP"
     bootstrap_cluster_creator_admin_permissions = true
@@ -171,7 +171,7 @@ resource "aws_eks_node_group" "k8s-node" {
   ]
 
   tags = {
-      Name = k8s-node
+    Name = "k8s-node"
   }
 
 }
