@@ -1,0 +1,138 @@
+pipeline {
+    agent any
+    parameters {
+        choice(
+            name: 'action',
+            choices: ['apply', 'destroy'],
+            description: 'Select terraform action to perform'
+        )
+    }
+    
+    environment {
+        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+        REGION = 'us-east-1'
+        TERRAFORM_DIR = 'Infra'
+        K8S_DIR = 'kubernetes-manifest'
+    }
+    
+    stages {
+        stage('Checkout SCM') {
+            steps {
+                script {
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: '*/develop'], [name: '*/main']],
+                        userRemoteConfigs: [[url: 'https://github.com/theglad-x/Dream-Vacation-App.git']]
+                    ])
+                }
+            }
+        }
+        
+        stage('Formatting Terraform') {
+            steps {
+                script {
+                    dir(TERRAFORM_DIR) {
+                        sh 'terraform fmt'
+                    }
+                }
+            }
+        }
+        
+        stage('Initializing Terraform') {
+            steps {
+                script {
+                    dir(TERRAFORM_DIR) {
+                        sh 'terraform init'
+                    }
+                }
+            }
+        }
+        
+        stage('Validating Terraform') {
+            steps {
+                script {
+                    dir(TERRAFORM_DIR) {
+                        sh 'terraform validate'
+                    }
+                }
+            }
+        }
+        
+        stage('Terraform Plan') {
+            steps {
+                script {
+                    dir(TERRAFORM_DIR) {
+                        if (params.action == 'destroy') {
+                            sh 'terraform plan -destroy -out=tfplan'
+                        } 
+                        else {
+                            sh 'terraform plan -out=tfplan'
+                        }
+                        input(message: "Review the plan. Do you want to proceed with ${params.action}?", ok: "Proceed")
+                    }
+                }
+            }
+        }
+        
+        stage('Terraform Apply') {
+            when {
+                expression { params.action == 'apply' }
+            }
+            steps {
+                script {
+                    dir(TERRAFORM_DIR) {
+                        sh 'terraform apply tfplan'
+                    }
+                }
+            }
+        }
+        
+        stage('Creating an EKS Cluster') {
+            when {
+                expression { params.action == 'apply' }
+            }
+            steps {
+                script {
+                    dir(K8S_DIR) {
+                        sh '''
+                            aws eks update-kubeconfig --name dreams-vacation-cluster --region ${REGION}
+                        '''
+                    }
+                }
+            }
+        }
+        
+        stage('Cleanup Application') {
+            when {
+                expression { params.action == 'destroy' }
+            }
+            steps {
+                script {
+                    dir(TERRAFORM_DIR) {
+                        sh 'terraform destroy --auto-approve'
+                    }
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            cleanWs()
+        }
+        success {
+            script {
+                if (params.action == 'apply') {
+                    echo "Infrastructure and application successfully deployed!"
+                } 
+                else {
+                    echo "Infrastructure and application successfully destroyed!"
+                } 
+            }
+        }
+        failure {
+            echo "Pipeline failed! Please check the logs for details."
+        }
+    }
+}
